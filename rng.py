@@ -19,9 +19,9 @@ IMG_DIR = 'img/'
 
 def generate():
 	image = cam.get_image()
-	pygame.image.save(image, IMG_DIR + 'test.jpg')
+	image_string = pygame.image.tostring(image, 'RGBA', False)
 	
-	img_bytes = bytearray(np.asarray(Image.open(IMG_DIR + 'test.jpg')))
+	img_bytes = bytearray(np.asarray(Image.frombytes('RGBA', (640,480), image_string)))
 	h = hashlib.new('SHA256')
 	h.update(img_bytes)
 
