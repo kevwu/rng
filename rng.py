@@ -22,13 +22,11 @@ def generate():
 	pygame.image.save(image, IMG_DIR + 'test.jpg')
 	
 	img_bytes = bytearray(np.asarray(Image.open(IMG_DIR + 'test.jpg')))
-	h = hashlib.new('SHA1')
+	h = hashlib.new('SHA256')
 	h.update(img_bytes)
 
 	values = list()
 	for val in h.digest():
 		values.append(val)
-
-	print(len(values))
 
 	return values
