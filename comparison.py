@@ -76,11 +76,6 @@ def test_rng(name, samples, gen):
 
 	print("Frequency monobit test: p = " + str(p))
 
-	if(p >= 0.01):
-		print("The sequence is believed to be random.")
-	else:
-		print("The sequence is not believed to be random.")
-
 	def frequency_block_test(M):
 		# frequency block test
 		freq_blocks = list() # freq_blocks will be a list of blocks
@@ -109,6 +104,26 @@ def test_rng(name, samples, gen):
 
 	frequency_block_test(8)
 	frequency_block_test(128)
+
+	# runs test
+	ones_prop = np.sum(values_bits) / len(values_bits)
+
+	def r(k):
+		if(k+1 >= len(values_bits)):
+			return 1
+		if(values_bits[k] == values_bits[k+1]):
+			return 0
+		else:
+			return 1
+
+	V_n = 0
+	for k in range(0, len(values_bits)):
+		V_n += r(k)
+
+	V_n += 1
+
+	p = scipy.special.erfc(math.fabs(V_n - ( 2 * len(values_bits) * ones_prop * (1 - ones_prop))) / (2 * math.sqrt(2 * len(values_bits)) * ones_prop * (1 - ones_prop)))
+	print("Runs test: p=" + str(p))
 
 # Linux's /dev/urandom true RNG
 test_rng('urandom', 10000, lambda: os.urandom(20))
