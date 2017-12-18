@@ -8,7 +8,7 @@ import os # for urandom
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.special # for erfc
+import scipy.special # for erfc, gammainc
 
 IMG_DIR = 'img/'
 
@@ -25,7 +25,7 @@ def test_rng(name, samples, gen):
 	while(len(values) < samples):
 		values += gen()
 		# print(values)
-		print(len(values))
+		# print(len(values))
 
 	gen_end_time = time.time() * 1000.0
 	print("Generated " + str(samples) + " samples in " + str(gen_end_time - gen_start_time) + "ms.")
@@ -81,18 +81,43 @@ def test_rng(name, samples, gen):
 	else:
 		print("The sequence is not believed to be random.")
 
-	# frequency block test
+	def frequency_block_test(M):
+		# frequency block test
+		freq_blocks = list() # freq_blocks will be a list of blocks
+		cur_block = list() # each block is a list
 
+		BLOCK_SIZE = M
+
+		for bit in values_bits:
+			if(len(cur_block) >= BLOCK_SIZE):
+				freq_blocks.append(cur_block)
+				cur_block = list()
+			cur_block.append(bit)
+
+		# find proportions of ones. The NIST paper calls this pi.
+		freq_proportions = list()
+		for block in freq_blocks:
+			freq_proportions.append(np.sum(block) / len(block))
+
+		chi_sq = 0
+		for prop in freq_proportions:
+			chi_sq += (prop - (0.5)) ** 2
+
+		chi_sq = chi_sq * 4 * BLOCK_SIZE
+		p = scipy.special.gammainc(len(freq_blocks) / 2, chi_sq / 2)
+		print("Frequency block test, M=" + str(BLOCK_SIZE) + ", p=" + str(p))
+
+	frequency_block_test(8)
+	frequency_block_test(128)
 
 # Linux's /dev/urandom true RNG
 test_rng('urandom', 10000, lambda: os.urandom(20))
-test_rng('urandom', 1000000, lambda: os.urandom(20))
+# test_rng('urandom', 1000000, lambda: os.urandom(20))
 
 # # python's built-in PRNG
 test_rng('python', 10000, lambda: ((random.getrandbits(8)) for _ in range(20)))
-test_rng('python', 1000000, lambda: ((random.getrandbits(8)) for _ in range(20)))
-
+# test_rng('python', 1000000, lambda: ((random.getrandbits(8)) for _ in range(20)))
 
 # use our custom RNG
 test_rng('custom', 10000, lambda: rng.generate())
-test_rng('custom', 1000000, lambda: rng.generate())
+# test_rng('custom', 1000000, lambda: rng.generate())
